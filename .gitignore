@@ -1,2 +1,33 @@
+# macOS
 .DS_Store
+
+# Xcode user data
+xcuserdata/
 *.xcuserstate
+*.xcworkspace
+*.xcscmblueprint
+
+# Build folders
+build/
+DerivedData/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# CocoaPods (only if you ever use it)
+Pods/
+
+# Carthage (only if you ever use it)
+Carthage/Build/
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# Archives
+*.ipa
+*.dSYM
+*.dSYM.zip
