@@ -32,8 +32,8 @@
 		69D8180D2DA428B800C17520 = {
 			isa = PBXGroup;
 			children = (
-				69D818182DA428B800C17520 /* Grocery List */,
 				69D818172DA428B800C17520 /* Products */,
+				69D818182DA428B800C17520 /* Grocery List */,
 			);
 			sourceTree = "<group>";
 		};

@@ -65,6 +65,7 @@ struct AddItemSheetView: View {
                             .padding(.vertical, 10)
                     }
                     .buttonStyle(.glassProminent)
+                    .tint(category.color)
                     .disabled(item.isEmpty)
                 }
             }
