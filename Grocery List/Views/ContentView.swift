@@ -20,6 +20,7 @@ struct ContentView: View {
     @State private var expandedCategories: Set<ItemCategory> = Set(ItemCategory.allCases)
     @State private var sortOption: SortOption = .dateAdded
     @State private var isHidingCompleted: Bool = false
+    @State private var pendingHideItems: Set<ObjectIdentifier> = []
     
     @FocusState private var isFocused: Bool
     @Environment(\.colorScheme) private var colorScheme
@@ -138,7 +139,17 @@ struct ContentView: View {
             )
         }
     }
-    
+
+    private var squeezeOutTransition: AnyTransition {
+        .asymmetric(
+            insertion: .identity,
+            removal: .modifier(
+                active: SqueezeOutModifier(scaleY: 0.01, opacity: 0.0),
+                identity: SqueezeOutModifier(scaleY: 1.0, opacity: 1.0)
+            )
+        )
+    }
+
     private func itemRow(for item: Item, category: ItemCategory) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(item.title)
@@ -156,16 +167,17 @@ struct ContentView: View {
         }
         .padding(.vertical, 2)
         .listRowBackground(categoryBackgroundColor(for: category))
+        .transition(squeezeOutTransition)
         .swipeActions {
             Button(role: .destructive) {
                 deleteItem(item)
             } label: {
-                Label("Delete", systemImage: "trash")
+                Label("", systemImage: "trash")
             }
         }
         .swipeActions(edge: .leading) {
             Button(
-                item.isCompleted ? "Undo" : "Done",
+                "",
                 systemImage: item.isCompleted ? "xmark.circle" : "checkmark.circle"
             ) {
                 toggleItemCompletion(item)
@@ -228,13 +240,34 @@ struct ContentView: View {
     }
     
     private func toggleItemCompletion(_ item: Item) {
+        if item.isCompleted {
+            pendingHideItems.remove(ObjectIdentifier(item))
+            item.isCompleted.toggle()
+            return
+        }
+
         item.isCompleted.toggle()
+
+        if isHidingCompleted {
+            let itemIdentifier = ObjectIdentifier(item)
+            pendingHideItems.insert(itemIdentifier)
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                if pendingHideItems.contains(itemIdentifier) {
+                    withAnimation(.snappy) {
+                        pendingHideItems.remove(itemIdentifier)
+                    }
+                }
+            }
+        }
     }
     
     private func sortedItems(for category: ItemCategory) -> [Item] {
         let baseItems = items.filter { $0.itemCategory == category }
-        let visibleItems = isHidingCompleted ? baseItems.filter { !$0.isCompleted } : baseItems
-        
+        let visibleItems = isHidingCompleted
+            ? baseItems.filter { !$0.isCompleted || pendingHideItems.contains(ObjectIdentifier($0)) }
+            : baseItems
+
         switch sortOption {
         case .name:
             return visibleItems.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
@@ -243,6 +276,17 @@ struct ContentView: View {
         }
     }
     
+    private struct SqueezeOutModifier: ViewModifier {
+        let scaleY: CGFloat
+        let opacity: Double
+
+        func body(content: Content) -> some View {
+            content
+                .scaleEffect(x: 1.0, y: scaleY, anchor: .center)
+                .opacity(opacity)
+        }
+    }
+
     private func deleteCompletedItems() {
         for item in items where item.isCompleted {
             modelContext.delete(item)
