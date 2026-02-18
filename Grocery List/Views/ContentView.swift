@@ -21,11 +21,12 @@ struct ContentView: View {
     @State private var sortOption: SortOption = .dateAdded
     @State private var isHidingCompleted: Bool = false
     @State private var pendingHideItems: Set<ObjectIdentifier> = []
+    @State private var isConfirmingDeleteCompleted: Bool = false
     
     @FocusState private var isFocused: Bool
     @Environment(\.colorScheme) private var colorScheme
     
-    
+    private var hasCompletedItems: Bool { items.contains(where: { $0.isCompleted }) }
     
     var body: some View {
         NavigationStack {
@@ -43,6 +44,14 @@ struct ContentView: View {
                     )
                     .presentationDetents([.medium])
                     .presentationDragIndicator(.visible)
+                }
+                .alert("Delete completed items?", isPresented: $isConfirmingDeleteCompleted) {
+                    Button("Delete", role: .destructive) {
+                        deleteCompletedItems()
+                    }
+                    Button("Cancel", role: .cancel) { }
+                } message: {
+                    Text("This will permanently remove all items marked as completed.")
                 }
         }
     }
@@ -109,10 +118,11 @@ struct ContentView: View {
                 
                 Section {
                     Button(role: .destructive) {
-                        deleteCompletedItems()
+                        isConfirmingDeleteCompleted = true
                     } label: {
                         Label("Delete completed items", systemImage: "trash")
                     }
+                    .disabled(!hasCompletedItems)
                 }
             } label: {
                 Image(systemName: "line.3.horizontal.decrease.circle")
@@ -331,3 +341,4 @@ enum SortOption: String, CaseIterable, Identifiable {
     ContentView()
         .modelContainer(for: Item.self, inMemory: true)
 }
+
