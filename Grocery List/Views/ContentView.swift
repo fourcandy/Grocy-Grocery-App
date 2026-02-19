@@ -17,7 +17,9 @@ struct ContentView: View {
     @State private var notes: String = ""
     @State private var isAddSheetPresented: Bool = false
     @State private var selectedCategory: ItemCategory = .fruitAndVeg
-    @State private var expandedCategories: Set<ItemCategory> = Set(ItemCategory.allCases)
+    @State private var expandedCategories: Set<ItemCategory> = Set(
+        ItemCategory.allCases
+    )
     @State private var sortOption: SortOption = .dateAdded
     @State private var isHidingCompleted: Bool = false
     @State private var pendingHideItems: Set<ObjectIdentifier> = []
@@ -27,7 +29,9 @@ struct ContentView: View {
     @FocusState private var isFocused: Bool
     @Environment(\.colorScheme) private var colorScheme
     
-    private var hasCompletedItems: Bool { items.contains(where: { $0.isCompleted }) }
+    private var hasCompletedItems: Bool {
+        items.contains(where: { $0.isCompleted })
+    }
     
     var body: some View {
         NavigationStack {
@@ -51,6 +55,15 @@ struct ContentView: View {
                     .presentationDetents([.medium])
                     .presentationDragIndicator(.visible)
                 }
+                .alert("Delete compleated items?", isPresented: $isConfirmingDeleteCompleted, actions: {
+                    Button("Delete", role: .destructive) {
+                        deleteCompletedItems()
+                    }
+                    Button("Cancel", role: .cancel) { }
+                }, message: {
+                    Text("This will permanently delete all completed items.")
+                }
+                )
                 .sheet(item: $editingItem, onDismiss: {
                     resetItemInput()
                 }) { itemToEdit in
@@ -105,11 +118,18 @@ struct ContentView: View {
                                 itemRow(for: item, category: category)
                             }
                         } label: {
-                            categoryHeader(for: category, count: categoryItems.count)
+                            categoryHeader(
+                                for: category,
+                                count: categoryItems.count
+                            )
                         }
-                        .listRowBackground(categoryBackgroundColor(for: category))
+                        .listRowBackground(
+                            categoryBackgroundColor(for: category)
+                        )
                     }
-                    .listRowInsets(EdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12))
+                    .listRowInsets(
+                        EdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12)
+                    )
                 }
             }
         }
@@ -205,7 +225,8 @@ struct ContentView: View {
                 .strikethrough(item.isCompleted)
                 .italic(item.isCompleted)
 
-            if !item.notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            if !item.notes
+                .trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 Text(item.notes)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -269,13 +290,20 @@ struct ContentView: View {
     
     private func categoryBackgroundColor(for category: ItemCategory) -> Color {
         let baseColor = category.color
-        return colorScheme == .dark ? baseColor.opacity(0.32) : baseColor.opacity(0.18)
+        return colorScheme == .dark ? baseColor
+            .opacity(0.32) : baseColor
+            .opacity(0.18)
     }
     
     private func addItem() {
         guard !item.isEmpty else { return }
         modelContext.insert(
-            Item(title: item, notes: notes, isCompleted: false, category: selectedCategory)
+            Item(
+                title: item,
+                notes: notes,
+                isCompleted: false,
+                category: selectedCategory
+            )
         )
         resetItemInput()
         isAddSheetPresented = false
@@ -336,12 +364,22 @@ struct ContentView: View {
     private func sortedItems(for category: ItemCategory) -> [Item] {
         let baseItems = items.filter { $0.itemCategory == category }
         let visibleItems = isHidingCompleted
-            ? baseItems.filter { !$0.isCompleted || pendingHideItems.contains(ObjectIdentifier($0)) }
-            : baseItems
+        ? baseItems
+            .filter {
+                !$0.isCompleted || pendingHideItems
+                    .contains(ObjectIdentifier($0))
+            }
+        : baseItems
 
         switch sortOption {
         case .name:
-            return visibleItems.sorted { $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending }
+            return visibleItems
+                .sorted {
+                    $0.title
+                        .localizedCaseInsensitiveCompare(
+                            $1.title
+                        ) == .orderedAscending
+                }
         case .dateAdded:
             return visibleItems.sorted { $0.dateAdded < $1.dateAdded }
         }
@@ -374,21 +412,84 @@ enum SortOption: String, CaseIterable, Identifiable {
 
 #Preview("Sample Data") {
     let sampleData: [Item] = [
-        Item(title: "Bananas", notes: "Ripe ones for smoothies.", isCompleted: false, category: .fruitAndVeg),
-        Item(title: "Baby spinach", notes: "Pre-washed, 2 bags.", isCompleted: false, category: .fruitAndVeg),
-        Item(title: "Greek yogurt", notes: "Plain, 5% fat.", isCompleted: false, category: .dairyAndEggs),
-        Item(title: "Free-range eggs", notes: "One dozen.", isCompleted: true, category: .dairyAndEggs),
-        Item(title: "Chicken thighs", notes: "Bone-in, skin-on.", isCompleted: false, category: .meatAndSeafood),
-        Item(title: "Sourdough loaf", notes: "Slice on arrival.", isCompleted: true, category: .bakeryAndBread),
-        Item(title: "Pasta", notes: "Rigatoni, 2 packs.", isCompleted: false, category: .pantry),
-        Item(title: "Olive oil", notes: "Extra virgin, 1L.", isCompleted: false, category: .pantry),
-        Item(title: "Kettle chips", notes: "Sea salt.", isCompleted: false, category: .snacks),
-        Item(title: "Dish soap", notes: "Lemon scent.", isCompleted: false, category: .household),
-        Item(title: "Aluminum foil", notes: "Heavy duty.", isCompleted: false, category: .household),
-        Item(title: "Birthday card", notes: "Any design.", isCompleted: false, category: .other)
+        Item(
+            title: "Bananas",
+            notes: "Ripe ones for smoothies.",
+            isCompleted: false,
+            category: .fruitAndVeg
+        ),
+        Item(
+            title: "Baby spinach",
+            notes: "Pre-washed, 2 bags.",
+            isCompleted: false,
+            category: .fruitAndVeg
+        ),
+        Item(
+            title: "Greek yogurt",
+            notes: "Plain, 5% fat.",
+            isCompleted: false,
+            category: .dairyAndEggs
+        ),
+        Item(
+            title: "Free-range eggs",
+            notes: "One dozen.",
+            isCompleted: true,
+            category: .dairyAndEggs
+        ),
+        Item(
+            title: "Chicken thighs",
+            notes: "Bone-in, skin-on.",
+            isCompleted: false,
+            category: .meatAndSeafood
+        ),
+        Item(
+            title: "Sourdough loaf",
+            notes: "Slice on arrival.",
+            isCompleted: true,
+            category: .bakeryAndBread
+        ),
+        Item(
+            title: "Pasta",
+            notes: "Rigatoni, 2 packs.",
+            isCompleted: false,
+            category: .pantry
+        ),
+        Item(
+            title: "Olive oil",
+            notes: "Extra virgin, 1L.",
+            isCompleted: false,
+            category: .pantry
+        ),
+        Item(
+            title: "Kettle chips",
+            notes: "Sea salt.",
+            isCompleted: false,
+            category: .snacks
+        ),
+        Item(
+            title: "Dish soap",
+            notes: "Lemon scent.",
+            isCompleted: false,
+            category: .household
+        ),
+        Item(
+            title: "Aluminum foil",
+            notes: "Heavy duty.",
+            isCompleted: false,
+            category: .household
+        ),
+        Item(
+            title: "Birthday card",
+            notes: "Any design.",
+            isCompleted: false,
+            category: .other
+        )
     ]
     
-    let container = try! ModelContainer(for: Item.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+    let container = try! ModelContainer(
+        for: Item.self,
+        configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+    )
     
     for item in sampleData {
         container.mainContext.insert(item)
