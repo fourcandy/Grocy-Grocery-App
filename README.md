@@ -30,7 +30,44 @@ This app focuses on clean UI design, structured architecture, and modern Apple f
 
 ## Screenshots
 
-(Add screenshots here once uploaded)
+### Main Screen
+
+<p align="center">
+  <img src="Screenshots/main-light.png" width="45%" />
+  <img src="Screenshots/main-dark.png" width="45%" />
+</p>
+
+---
+
+### Add New Item
+
+<p align="center">
+  <img src="Screenshots/add-item.png" width="45%" />
+</p>
+
+---
+
+### Swipe Actions
+
+<p align="center">
+  <img src="Screenshots/swipe-actions.png" width="45%" />
+</p>
+
+---
+
+### Delete Confirmation
+
+<p align="center">
+  <img src="Screenshots/delete-confirmation.png" width="45%" />
+</p>
+
+---
+
+### Empty State
+
+<p align="center">
+  <img src="Screenshots/empty-state.png" width="45%" />
+</p>
 
 ---
 
