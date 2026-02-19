@@ -22,6 +22,7 @@ struct ContentView: View {
     @State private var isHidingCompleted: Bool = false
     @State private var pendingHideItems: Set<ObjectIdentifier> = []
     @State private var isConfirmingDeleteCompleted: Bool = false
+    @State private var editingItem: Item? = nil
     
     @FocusState private var isFocused: Bool
     @Environment(\.colorScheme) private var colorScheme
@@ -35,23 +36,58 @@ struct ContentView: View {
                 .toolbar { toolbarContent }
                 .overlay { emptyStateOverlay }
                 .sheet(isPresented: $isAddSheetPresented) {
-                    AddItemSheetView(
-                        item: $item,
-                        notes: $notes,
-                        category: $selectedCategory,
-                        onSave: addItem,
-                        onCancel: resetItemInput
-                    )
+                    NavigationStack {
+                        AddItemSheetView(
+                            item: $item,
+                            notes: $notes,
+                            category: $selectedCategory,
+                            onSave: addItem,
+                            onCancel: resetItemInput,
+                            title: "New Item"
+                        )
+                        .navigationTitle("New Item")
+                        .navigationBarTitleDisplayMode(.inline)
+                    }
                     .presentationDetents([.medium])
                     .presentationDragIndicator(.visible)
                 }
-                .alert("Delete completed items?", isPresented: $isConfirmingDeleteCompleted) {
-                    Button("Delete", role: .destructive) {
-                        deleteCompletedItems()
+                .sheet(item: $editingItem, onDismiss: {
+                    resetItemInput()
+                }) { itemToEdit in
+                    NavigationStack {
+                        AddItemSheetView(
+                            item: Binding(
+                                get: { item },
+                                set: { item = $0 }
+                            ),
+                            notes: Binding(
+                                get: { notes },
+                                set: { notes = $0 }
+                            ),
+                            category: Binding(
+                                get: { selectedCategory },
+                                set: { selectedCategory = $0 }
+                            ),
+                            onSave: {
+                                updateEditingItem()
+                            },
+                            onCancel: {
+                                resetItemInput()
+                                editingItem = nil
+                            },
+                            title: "Edit Item"
+                        )
+                        .onAppear {
+                            // Prefill the editing buffers with the item's existing values
+                            item = itemToEdit.title
+                            notes = itemToEdit.notes
+                            selectedCategory = itemToEdit.itemCategory
+                        }
+                        .navigationTitle("Edit Item")
+                        .navigationBarTitleDisplayMode(.inline)
                     }
-                    Button("Cancel", role: .cancel) { }
-                } message: {
-                    Text("This will permanently remove all items marked as completed.")
+                    .presentationDetents([.medium])
+                    .presentationDragIndicator(.visible)
                 }
         }
     }
@@ -131,6 +167,7 @@ struct ContentView: View {
         
         ToolbarItem(placement: .topBarTrailing) {
             Button {
+                resetItemInput()
                 isAddSheetPresented = true
             } label: {
                 Image(systemName: "plus")
@@ -193,6 +230,14 @@ struct ContentView: View {
                 toggleItemCompletion(item)
             }
             .tint(item.isCompleted ? .accentColor : .green)
+            
+            
+            Button {
+                beginEditing(item)
+            } label: {
+                Label("", systemImage: "pencil")
+            }
+            .tint(.blue)
         }
     }
     
@@ -247,6 +292,22 @@ struct ContentView: View {
         withAnimation {
             modelContext.delete(item)
         }
+    }
+    
+    private func beginEditing(_ item: Item) {
+        editingItem = item
+        // Prefill occurs in the sheet's onAppear
+    }
+
+    private func updateEditingItem() {
+        guard let editingItem else { return }
+        // Apply edits to the model object
+        editingItem.title = item
+        editingItem.notes = notes
+        editingItem.itemCategory = selectedCategory
+        // Reset edit state
+        resetItemInput()
+        self.editingItem = nil
     }
     
     private func toggleItemCompletion(_ item: Item) {

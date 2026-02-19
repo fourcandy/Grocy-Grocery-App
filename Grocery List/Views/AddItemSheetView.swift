@@ -14,6 +14,7 @@ struct AddItemSheetView: View {
     @Binding var category: ItemCategory
     let onSave: () -> Void
     let onCancel: () -> Void
+    let title: String
     
     @FocusState private var isFocused: Bool
     @Environment(\.dismiss) private var dismiss
@@ -71,7 +72,7 @@ struct AddItemSheetView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
             .padding()
-            .navigationTitle("New Item")
+            .navigationTitle(title)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") {
